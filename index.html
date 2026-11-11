@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bewerbungsportal - Hamburg Response</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-logo">
+            <a href="index.html">
+                <img src="https://media.discordapp.net/attachments/1569806143910445086/1569826475647967342/53a0b2f5-535c-4175-8aba-10620054bd7f.png?ex=6af4de55&is=6af38cd5&hm=2b44e9b9e5afd61cd371aef206cb249f0a8482595f6ab9540070e0e29ee3284d&=&format=webp&quality=lossless&width=640&height=640" alt="Hamburg Response Logo" style="width: 40px; height: 40px; object-fit: contain;">
+            </a>
+        </div>
+        <button id="staffLoginBtn" class="btn btn-outline">Staff Login</button>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <h1 class="main-title">Willkommen im Bewerbungsportal von</h1>
+            <h2 class="sub-title">Hamburg Response</h2>
+
+            <div class="cards-grid">
+                <div class="card" id="cardModerator">
+                    <div class="card-svg">
+                        <svg width="110" height="110" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="120" height="120" fill="#f8fafc" rx="12"/>
+                           
+                            <circle cx="60" cy="38" r="16" fill="none" stroke="#334155" stroke-width="2.5" stroke-dasharray="80 2"/>
+                            <path d="M44 32 Q60 22 76 32" fill="none" stroke="#0284c7" stroke-width="2.5"/>
+                            <circle cx="74" cy="38" r="3" fill="#0284c7"/>
+                            <path d="M35 85 C35 64, 45 58, 60 58 C75 58, 85 64, 85 85" fill="none" stroke="#334155" stroke-width="2.5"/>
+                            <rect x="42" y="68" width="36" height="26" rx="3" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+                            <line x1="48" y1="76" x2="68" y2="76" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="48" y1="84" x2="60" y2="84" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">Moderator Bewerbungen</h3>
+                    <p class="card-desc">Stellenausschreibung Test-Moderator</p>
+                    <span class="status-badge" id="badgeModerator" style="display:none;">GESCHLOSSEN</span>
+                    <button class="btn btn-primary" id="btnApplyMod">Jetzt bewerben!</button>
+                </div>
+
+                <div class="card" id="cardDeveloper">
+                    <div class="card-svg">
+                        <svg width="110" height="110" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="120" height="120" fill="#f8fafc" rx="12"/>
+                            <!-- Skizzierter Developer am Laptop -->
+                            <circle cx="60" cy="36" r="16" fill="none" stroke="#334155" stroke-width="2.5"/>
+                            <path d="M35 85 C35 64, 45 58, 60 58 C75 58, 85 64, 85 85" fill="none" stroke="#334155" stroke-width="2.5"/>
+                            <rect x="32" y="66" width="56" height="28" rx="4" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+                            <line x1="32" y1="90" x2="88" y2="90" stroke="#334155" stroke-width="2"/>
+                            <path d="M48 74 L42 80 L48 86" fill="none" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M72 74 L78 80 L72 86" fill="none" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">Developer Bewerbungen</h3>
+                    <p class="card-desc">Initiativbewerbung Entwicklung</p>
+                    <span class="status-badge" id="badgeDeveloper" style="display:none;">GESCHLOSSEN</span>
+                    <button class="btn btn-primary" id="btnApplyDev">Bewerben</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="timer-section">
+            <div class="timer-container">
+                <div class="timer-content">
+                    <h3 class="timer-heading">Bewerbungsphase</h3>
+                    <p class="timer-subtext">Die Bewerbungsphase läuft noch bis zum Ablauf des Timers.</p>
+                    <div class="timer-display">
+                        <div class="timer-box"><span id="days">00</span><small>Tage</small></div>
+                        <span class="timer-colon">:</span>
+                        <div class="timer-box"><span id="hours">00</span><small>Stunden</small></div>
+                        <span class="timer-colon">:</span>
+                        <div class="timer-box"><span id="minutes">00</span><small>Minuten</small></div>
+                        <span class="timer-colon">:</span>
+                        <div class="timer-box"><span id="seconds">00</span><small>Sekunden</small></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="modal" id="applyModal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose">&times;</button>
+            <h2 id="modalTitle">Bewerbung einreichen</h2>
+            <form id="applyForm">
+                <input type="hidden" id="appType" value="">
+                <div class="form-section">
+                    <h4>1. Discord & OOC Informationen</h4>
+                    <div class="form-group">
+                        <label for="discordTag">Discord Tag *</label>
+                        <input type="text" id="discordTag" required placeholder="z.B. user#1234">
+                    </div>
+                    <div class="form-group">
+                        <label for="alter">Alter *</label>
+                        <input type="number" id="alter" min="12" max="99" required placeholder="Dein Alter">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h4>2. In-Game (IC) Informationen</h4>
+                    <div class="form-group">
+                        <label for="icName">RP-Name (IC) *</label>
+                        <input type="text" id="icName" required placeholder="z.B. Hans Peter">
+                    </div>
+                    <div class="form-group">
+                        <label for="robloxName">Roblox Name *</label>
+                        <input type="text" id="robloxName" required placeholder="Roblox Username">
+                    </div>
+                </div>
+
+                <div id="dynamicFields"></div>
+
+                <div class="form-group">
+                    <label for="motivation">Motivation *</label>
+                    <textarea id="motivation" rows="3" required placeholder="Warum du?"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Bewerbung absenden</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="loginModal">
+        <div class="modal-content modal-small">
+            <button class="modal-close" id="loginClose">&times;</button>
+            <h2>Staff Login</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginUser">Benutzername</label>
+                    <input type="text" id="loginUser" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPass">Passwort</label>
+                    <input type="password" id="loginPass" required>
+                </div>
+                <p id="loginError" class="error-text" style="display:none;">Falsche Anmeldedaten!</p>
+                <button type="submit" class="btn btn-primary btn-full">Anmelden</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="staffModal">
+        <div class="modal-content modal-large">
+            <div class="staff-header">
+                <h2>Staff Dashboard</h2>
+                <button class="btn btn-outline" id="staffLogout">Abmelden</button>
+            </div>
+
+            <div class="staff-settings">
+                <h3>Einstellungen & Steuerung</h3>
+                <div class="phase-toggle-grid">
+                    <div class="phase-toggle-item">
+                        <span>Moderator Phasen:</span>
+                        <button class="btn" id="toggleModPhase">Aktiv</button>
+                    </div>
+                    <div class="phase-toggle-item">
+                        <span>Developer Phasen:</span>
+                        <button class="btn" id="toggleDevPhase">Aktiv</button>
+                    </div>
+                </div>
+                <form id="timerSettingsForm" class="timer-form">
+                    <div class="form-group">
+                        <label for="timerDate">Enddatum Timer</label>
+                        <input type="datetime-local" id="timerDate" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Speichern</button>
+                </form>
+            </div>
+
+            <div class="staff-nav">
+                <button class="tab-btn active" data-tab="tab-offen">Offen (<span id="cntOffen">0</span>)</button>
+                <button class="tab-btn" data-tab="tab-angenommen">Angenommen (<span id="cntAngenommen">0</span>)</button>
+                <button class="tab-btn" data-tab="tab-abgelehnt">Abgelehnt (<span id="cntAbgelehnt">0</span>)</button>
+            </div>
+
+            <div class="tab-content active" id="tab-offen"><div class="app-list" id="listOffen"></div></div>
+            <div class="tab-content" id="tab-angenommen"><div class="app-list" id="listAngenommen"></div></div>
+            <div class="tab-content" id="tab-abgelehnt"><div class="app-list" id="listAbgelehnt"></div></div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2026 Hamburg Response – Communityprojekt</p>
+        <a href="impressum.html" class="footer-link">Impressum</a>
+    </footer>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/timer.js"></script>
+    <script src="assets/js/modal.js"></script>
+    <script src="assets/js/staff.js"></script>
+    <script src="assets/js/main.js"></script>
+</body>
+</html>
