@@ -1,11 +1,14 @@
 const STAFF_CREDENTIALS = {
-    username: "admin",
-    password: "rostock2026"
+    username: "Krypto_Dev",
+    password: "112",
+
+     username: "Dev_luxury",
+    password: "Luxury908070"
 };
 
 let applications = JSON.parse(localStorage.getItem('rostock_apps')) || [];
 let phaseSettings = JSON.parse(localStorage.getItem('rostock_phases')) || { mod: true, dev: true };
-let targetDate = localStorage.getItem('rostock_timer') || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+let targetDate = localStorage.getItem('rostock_timer') || new Date(Date.now() + 7*24*60*60*1000).toISOString();
 
 document.addEventListener('DOMContentLoaded', () => {
     initTimer();
@@ -88,33 +91,37 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-function initTimer() {
-    function updateCount() {
-        const now = new Date().getTime();
-        const countTo = new Date(targetDate).getTime();
-        const diff = countTo - now;
+function handleApplySubmit(e) {
+    e.preventDefault();
+    const type = document.getElementById('appType').value;
+    
+    const appData = {
+        id: Date.now(),
+        type: type,
+        status: 'offen',
+        discord: document.getElementById('discordTag').value,
+        alter: document.getElementById('alter').value,
+        icName: document.getElementById('icName').value,
+        roblox: document.getElementById('robloxName').value,
+        motivation: document.getElementById('motivation').value,
+        date: new Date().toLocaleDateString('de-DE')
+    };
 
-        if (diff <= 0) {
-            document.getElementById('days').innerText = '00';
-            document.getElementById('hours').innerText = '00';
-            document.getElementById('minutes').innerText = '00';
-            document.getElementById('seconds').innerText = '00';
-            return;
-        }
-
-        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const s = Math.floor((diff % (1000 * 60)) / 1000);
-
-        document.getElementById('days').innerText = String(d).padStart(2, '0');
-        document.getElementById('hours').innerText = String(h).padStart(2, '0');
-        document.getElementById('minutes').innerText = String(m).padStart(2, '0');
-        document.getElementById('seconds').innerText = String(s).padStart(2, '0');
+    if (type === 'Developer') {
+        appData.spec = document.getElementById('devSpec').value;
+        const imgPrev = document.getElementById('devImgPrev');
+        appData.image = imgPrev ? imgPrev.src : null;
+    } else {
+        appData.exp = document.getElementById('modExp').value;
     }
 
-    updateCount();
-    setInterval(updateCount, 1000);
+    applications.push(appData);
+    localStorage.setItem('rostock_apps', JSON.stringify(applications));
+
+    alert('Deine Bewerbung wurde erfolgreich eingereicht!');
+    closeModal('applyModal');
+    document.getElementById('applyForm').reset();
+    document.getElementById('dynamicFields').innerHTML = '';
 }
 
 function openModal(id) {
@@ -129,7 +136,7 @@ function openApplyModal(type) {
     document.getElementById('appType').value = type;
     document.getElementById('modalTitle').innerText = `${type} Bewerbung`;
     const dyn = document.getElementById('dynamicFields');
-
+    
     if (type === 'Developer') {
         dyn.innerHTML = `
             <div class="form-section">
@@ -176,39 +183,6 @@ function openApplyModal(type) {
     }
 
     openModal('applyModal');
-}
-
-function handleApplySubmit(e) {
-    e.preventDefault();
-    const type = document.getElementById('appType').value;
-
-    const appData = {
-        id: Date.now(),
-        type: type,
-        status: 'offen',
-        discord: document.getElementById('discordTag').value,
-        alter: document.getElementById('alter').value,
-        icName: document.getElementById('icName').value,
-        roblox: document.getElementById('robloxName').value,
-        motivation: document.getElementById('motivation').value,
-        date: new Date().toLocaleDateString('de-DE')
-    };
-
-    if (type === 'Developer') {
-        appData.spec = document.getElementById('devSpec').value;
-        const imgPrev = document.getElementById('devImgPrev');
-        appData.image = imgPrev ? imgPrev.src : null;
-    } else {
-        appData.exp = document.getElementById('modExp').value;
-    }
-
-    applications.push(appData);
-    localStorage.setItem('rostock_apps', JSON.stringify(applications));
-
-    alert('Deine Bewerbung wurde erfolgreich eingereicht!');
-    closeModal('applyModal');
-    document.getElementById('applyForm').reset();
-    document.getElementById('dynamicFields').innerHTML = '';
 }
 
 function updatePhaseUI() {
@@ -270,8 +244,6 @@ function renderApplications() {
     const listOffen = document.getElementById('listOffen');
     const listAngenommen = document.getElementById('listAngenommen');
     const listAbgelehnt = document.getElementById('listAbgelehnt');
-
-    if (!listOffen) return;
 
     listOffen.innerHTML = '';
     listAngenommen.innerHTML = '';
@@ -346,4 +318,33 @@ function deleteApp(id) {
         localStorage.setItem('rostock_apps', JSON.stringify(applications));
         renderApplications();
     }
+}
+
+function initTimer() {
+    function updateCount() {
+        const now = new Date().getTime();
+        const countTo = new Date(targetDate).getTime();
+        const diff = countTo - now;
+
+        if (diff <= 0) {
+            document.getElementById('days').innerText = '00';
+            document.getElementById('hours').innerText = '00';
+            document.getElementById('minutes').innerText = '00';
+            document.getElementById('seconds').innerText = '00';
+            return;
+        }
+
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+        document.getElementById('days').innerText = String(d).padStart(2, '0');
+        document.getElementById('hours').innerText = String(h).padStart(2, '0');
+        document.getElementById('minutes').innerText = String(m).padStart(2, '0');
+        document.getElementById('seconds').innerText = String(s).padStart(2, '0');
+    }
+
+    updateCount();
+    setInterval(updateCount, 1000);
 }
