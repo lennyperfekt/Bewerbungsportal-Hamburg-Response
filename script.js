@@ -1,10 +1,7 @@
-const STAFF_CREDENTIALS = {
-    username: "Krypto_Dev",
-    password: "112",
-
-     username: "Dev_luxury",
-    password: "Luxury908070"
-};
+const STAFF_CREDENTIALS = [
+    { username: "Krypto_Dev", password: "112" },
+    { username: "Dev_luxury", password: "Luxury908070" }
+];
 
 let applications = JSON.parse(localStorage.getItem('rostock_apps')) || [];
 let phaseSettings = JSON.parse(localStorage.getItem('rostock_phases')) || { mod: true, dev: true };
@@ -28,7 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const u = document.getElementById('loginUser').value;
         const p = document.getElementById('loginPass').value;
 
-        if (u === STAFF_CREDENTIALS.username && p === STAFF_CREDENTIALS.password) {
+        const validStaff = STAFF_CREDENTIALS.some(cred => cred.username === u && cred.password === p);
+
+        if (validStaff) {
             localStorage.setItem('staff_logged_in', 'true');
             closeModal('loginModal');
             openStaffPanel();
@@ -55,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.modal-close').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const modal = e.target.closest('.modal');
-            modal.classList.remove('active');
+            if (modal) modal.classList.remove('active');
         });
     });
 
@@ -86,7 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             btn.classList.add('active');
-            document.getElementById(btn.dataset.tab).classList.add('active');
+            const targetTab = document.getElementById(btn.dataset.tab);
+            if (targetTab) targetTab.classList.add('active');
         });
     });
 });
@@ -108,33 +108,43 @@ function handleApplySubmit(e) {
     };
 
     if (type === 'Developer') {
-        appData.spec = document.getElementById('devSpec').value;
+        const specEl = document.getElementById('devSpec');
+        appData.spec = specEl ? specEl.value : 'Luau / Scripting';
         const imgPrev = document.getElementById('devImgPrev');
-        appData.image = imgPrev ? imgPrev.src : null;
+        appData.image = (imgPrev && imgPrev.src && imgPrev.style.display !== 'none') ? imgPrev.src : null;
     } else {
-        appData.exp = document.getElementById('modExp').value;
+        const modExpEl = document.getElementById('modExp');
+        appData.exp = modExpEl ? modExpEl.value : '';
     }
 
-    applications.push(appData);
-    localStorage.setItem('rostock_apps', JSON.stringify(applications));
-
-    alert('Deine Bewerbung wurde erfolgreich eingereicht!');
-    closeModal('applyModal');
-    document.getElementById('applyForm').reset();
-    document.getElementById('dynamicFields').innerHTML = '';
+    try {
+        applications.push(appData);
+        localStorage.setItem('rostock_apps', JSON.stringify(applications));
+        alert('Deine Bewerbung wurde erfolgreich eingereicht!');
+        closeModal('applyModal');
+        document.getElementById('applyForm').reset();
+        document.getElementById('dynamicFields').innerHTML = '';
+        renderApplications();
+    } catch (err) {
+        alert('Fehler beim Speichern! Auf Mobilgeräten sind große Bilder im Speicher oft zu groß für den lokalen Speicher. Versuche ein kleineres Bild oder keins.');
+        console.error(err);
+    }
 }
 
 function openModal(id) {
-    document.getElementById(id).classList.add('active');
+    const el = document.getElementById(id);
+    if (el) el.classList.add('active');
 }
 
 function closeModal(id) {
-    document.getElementById(id).classList.remove('active');
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('active');
 }
 
 function openApplyModal(type) {
     document.getElementById('appType').value = type;
-    document.getElementById('modalTitle').innerText = `${type} Bewerbung`;
+    const titleEl = document.getElementById('modalTitle');
+    if (titleEl) titleEl.innerText = `${type} Bewerbung`;
     const dyn = document.getElementById('dynamicFields');
     
     if (type === 'Developer') {
@@ -158,18 +168,51 @@ function openApplyModal(type) {
             </div>
         `;
 
-        document.getElementById('devImg').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (evt) => {
-                    const prev = document.getElementById('devImgPrev');
-                    prev.src = evt.target.result;
-                    prev.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
-        });
+        const devImgInput = document.getElementById('devImg');
+        if (devImgInput) {
+            devImgInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (evt) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            const MAX_WIDTH = 600;
+                            const MAX_HEIGHT = 600;
+                            let width = img.width;
+                            let height = img.height;
+
+                            if (width > height) {
+                                if (width > MAX_WIDTH) {
+                                    height *= MAX_WIDTH / width;
+                                    width = MAX_WIDTH;
+                                }
+                            } else {
+                                if (height > MAX_HEIGHT) {
+                                    width *= MAX_HEIGHT / height;
+                                    height = MAX_HEIGHT;
+                                }
+                            }
+
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+
+                            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                            const prev = document.getElementById('devImgPrev');
+                            if (prev) {
+                                prev.src = compressedDataUrl;
+                                prev.style.display = 'block';
+                            }
+                        };
+                        img.src = evt.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
     } else {
         dyn.innerHTML = `
             <div class="form-section">
@@ -190,41 +233,49 @@ function updatePhaseUI() {
     const btnMod = document.getElementById('btnApplyMod');
     const badgeMod = document.getElementById('badgeModerator');
 
-    if (phaseSettings.mod) {
-        cardMod.classList.remove('closed');
-        btnMod.disabled = false;
-        btnMod.innerText = 'Jetzt bewerben!';
-        badgeMod.style.display = 'none';
-    } else {
-        cardMod.classList.add('closed');
-        btnMod.disabled = true;
-        btnMod.innerText = 'Bewerbung geschlossen';
-        badgeMod.style.display = 'inline-block';
+    if (cardMod && btnMod && badgeMod) {
+        if (phaseSettings.mod) {
+            cardMod.classList.remove('closed');
+            btnMod.disabled = false;
+            btnMod.innerText = 'Jetzt bewerben!';
+            badgeMod.style.display = 'none';
+        } else {
+            cardMod.classList.add('closed');
+            btnMod.disabled = true;
+            btnMod.innerText = 'Bewerbung geschlossen';
+            badgeMod.style.display = 'inline-block';
+        }
     }
 
     const cardDev = document.getElementById('cardDeveloper');
     const btnDev = document.getElementById('btnApplyDev');
     const badgeDev = document.getElementById('badgeDeveloper');
 
-    if (phaseSettings.dev) {
-        cardDev.classList.remove('closed');
-        btnDev.disabled = false;
-        btnDev.innerText = 'Bewerben';
-        badgeDev.style.display = 'none';
-    } else {
-        cardDev.classList.add('closed');
-        btnDev.disabled = true;
-        btnDev.innerText = 'Bewerbung geschlossen';
-        badgeDev.style.display = 'inline-block';
+    if (cardDev && btnDev && badgeDev) {
+        if (phaseSettings.dev) {
+            cardDev.classList.remove('closed');
+            btnDev.disabled = false;
+            btnDev.innerText = 'Bewerben';
+            badgeDev.style.display = 'none';
+        } else {
+            cardDev.classList.add('closed');
+            btnDev.disabled = true;
+            btnDev.innerText = 'Bewerbung geschlossen';
+            badgeDev.style.display = 'inline-block';
+        }
     }
 
     const tModBtn = document.getElementById('toggleModPhase');
-    tModBtn.innerText = phaseSettings.mod ? 'Aktiv' : 'Geschlossen';
-    tModBtn.className = phaseSettings.mod ? 'btn btn-success' : 'btn btn-danger';
+    if (tModBtn) {
+        tModBtn.innerText = phaseSettings.mod ? 'Aktiv' : 'Geschlossen';
+        tModBtn.className = phaseSettings.mod ? 'btn btn-success' : 'btn btn-danger';
+    }
 
     const tDevBtn = document.getElementById('toggleDevPhase');
-    tDevBtn.innerText = phaseSettings.dev ? 'Aktiv' : 'Geschlossen';
-    tDevBtn.className = phaseSettings.dev ? 'btn btn-success' : 'btn btn-danger';
+    if (tDevBtn) {
+        tDevBtn.innerText = phaseSettings.dev ? 'Aktiv' : 'Geschlossen';
+        tDevBtn.className = phaseSettings.dev ? 'btn btn-success' : 'btn btn-danger';
+    }
 }
 
 function savePhases() {
@@ -236,7 +287,8 @@ function openStaffPanel() {
     renderApplications();
     const dt = new Date(targetDate);
     const formatted = dt.toISOString().slice(0, 16);
-    document.getElementById('timerDate').value = formatted;
+    const timerDateEl = document.getElementById('timerDate');
+    if (timerDateEl) timerDateEl.value = formatted;
     openModal('staffModal');
 }
 
@@ -244,6 +296,8 @@ function renderApplications() {
     const listOffen = document.getElementById('listOffen');
     const listAngenommen = document.getElementById('listAngenommen');
     const listAbgelehnt = document.getElementById('listAbgelehnt');
+
+    if (!listOffen || !listAngenommen || !listAbgelehnt) return;
 
     listOffen.innerHTML = '';
     listAngenommen.innerHTML = '';
@@ -257,12 +311,12 @@ function renderApplications() {
 
         let extraDetails = '';
         if (app.type === 'Developer') {
-            extraDetails = `<div><strong>Spezialisierung:</strong> ${app.spec}</div>`;
+            extraDetails = `<div><strong>Spezialisierung:</strong> ${app.spec || '-'}</div>`;
             if (app.image) {
                 extraDetails += `<div><strong>Arbeitsprobe:</strong><br><img src="${app.image}" style="max-width:140px; border-radius:4px; margin-top:4px;"></div>`;
             }
         } else {
-            extraDetails = `<div><strong>Erfahrung:</strong> ${app.exp}</div>`;
+            extraDetails = `<div><strong>Erfahrung:</strong> ${app.exp || '-'}</div>`;
         }
 
         card.innerHTML = `
@@ -298,9 +352,13 @@ function renderApplications() {
         }
     });
 
-    document.getElementById('cntOffen').innerText = cntOffen;
-    document.getElementById('cntAngenommen').innerText = cntAngenommen;
-    document.getElementById('cntAbgelehnt').innerText = cntAbgelehnt;
+    const cntOffenEl = document.getElementById('cntOffen');
+    const cntAngenommenEl = document.getElementById('cntAngenommen');
+    const cntAbgelehntEl = document.getElementById('cntAbgelehnt');
+
+    if (cntOffenEl) cntOffenEl.innerText = cntOffen;
+    if (cntAngenommenEl) cntAngenommenEl.innerText = cntAngenommen;
+    if (cntAbgelehntEl) cntAbgelehntEl.innerText = cntAbgelehnt;
 }
 
 function changeAppStatus(id, newStatus) {
@@ -326,11 +384,18 @@ function initTimer() {
         const countTo = new Date(targetDate).getTime();
         const diff = countTo - now;
 
+        const daysEl = document.getElementById('days');
+        const hoursEl = document.getElementById('hours');
+        const minutesEl = document.getElementById('minutes');
+        const secondsEl = document.getElementById('seconds');
+
+        if (!daysEl || !hoursEl || !minutesEl || !secondsEl) return;
+
         if (diff <= 0) {
-            document.getElementById('days').innerText = '00';
-            document.getElementById('hours').innerText = '00';
-            document.getElementById('minutes').innerText = '00';
-            document.getElementById('seconds').innerText = '00';
+            daysEl.innerText = '00';
+            hoursEl.innerText = '00';
+            minutesEl.innerText = '00';
+            secondsEl.innerText = '00';
             return;
         }
 
@@ -339,10 +404,10 @@ function initTimer() {
         const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const s = Math.floor((diff % (1000 * 60)) / 1000);
 
-        document.getElementById('days').innerText = String(d).padStart(2, '0');
-        document.getElementById('hours').innerText = String(h).padStart(2, '0');
-        document.getElementById('minutes').innerText = String(m).padStart(2, '0');
-        document.getElementById('seconds').innerText = String(s).padStart(2, '0');
+        daysEl.innerText = String(d).padStart(2, '0');
+        hoursEl.innerText = String(h).padStart(2, '0');
+        minutesEl.innerText = String(m).padStart(2, '0');
+        secondsEl.innerText = String(s).padStart(2, '0');
     }
 
     updateCount();
